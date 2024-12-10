@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hill Cipher</title>
+    <link rel="stylesheet" type="text/css" href="hillCipher.css">
+    <script src="function/hillCipher.js"></script>
+    <script>
+        function encrypt() {
+            const plainText = document.getElementById("plainText").value.trim();
+
+            if (!plainText) {
+                alert("Please enter plain text to encrypt.");
+                return;
+            }
+
+            try {
+                const { cipherText, keyMatrix, paddingCount } = hillEncryptAuto(plainText);
+
+                document.getElementById("cipherText").value = cipherText;
+                document.getElementById("key").value = JSON.stringify(keyMatrix);
+                document.getElementById("paddingCount").value = paddingCount;
+            } catch (error) {
+                console.error("Encryption failed:", error.message);
+                alert("Encryption failed. Please check your input.");
+            }
+        }
+
+        function decrypt() {
+            const cipherText = document.getElementById("cipherText").value.trim();
+            const keyMatrixInput = document.getElementById("key").value.trim();
+            const paddingCount = parseInt(document.getElementById("paddingCount").value || "0");
+
+            if (!cipherText || !keyMatrixInput) {
+                alert("Please enter both cipher text and key to decrypt.");
+                return;
+            }
+
+            try {
+                const keyMatrix = JSON.parse(keyMatrixInput);
+
+                const plainText = hillDecrypt(cipherText, keyMatrix, paddingCount);
+
+                document.getElementById("plainText").value = plainText;
+            } catch (error) {
+                console.error("Decryption failed:", error.message);
+                alert("Decryption failed. Please check your input or key matrix.");
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Hill Cipher</h1>
+    <div>
+        <h2>Encrypt</h2>
+        <textarea id="plainText" placeholder="Enter plain text"></textarea>
+        <button onclick="encrypt()">Encrypt</button>
+    </div>
+    <div>
+        <h2>Decrypt</h2>
+        <textarea id="cipherText" placeholder="Enter cipher text"></textarea>
+        <input id="key" type="text" placeholder='Enter key matrix (JSON format)'>
+        <input id="paddingCount" type="hidden" value="0">
+        <button onclick="decrypt()">Decrypt</button>
+    </div>
+
+    <a href="main.html" class="back-link">Back to Home</a>
+</body>
+</html>

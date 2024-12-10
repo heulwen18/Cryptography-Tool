@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElGamal Encryption</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="function/ElGamal.js"></script>
+    <script>
+        async function encrypt() {
+            const plainText = document.getElementById("plainText").value.trim();
+
+            if (!plainText) {
+                alert("Please enter plain text to encrypt.");
+                return;
+            }
+
+            try {
+                const keys = await generateElGamalKeys(1024);
+                const cipher = elGamalEncrypt(plainText, keys.publicKey);
+
+                document.getElementById("cipherText").value = JSON.stringify(cipher);
+                document.getElementById("key").value = JSON.stringify(keys);
+            } catch (error) {
+                console.error("Encryption failed:", error.message);
+                alert("Encryption failed. Please check your input.");
+            }
+        }
+
+        function decrypt() {
+            const cipherText = JSON.parse(document.getElementById("cipherText").value.trim());
+            const keyInput = document.getElementById("key").value.trim();
+
+            if (!cipherText || !keyInput) {
+                alert("Please enter both cipher text and key to decrypt.");
+                return;
+            }
+
+            try {
+                const keys = JSON.parse(keyInput);
+
+                if (!keys.privateKey || !keys.publicKey.p) {
+                    alert("Key must be a valid JSON object containing privateKey and publicKey.");
+                    return;
+                }
+
+                const plainText = elGamalDecrypt(cipherText, keys.privateKey, keys.publicKey.p);
+
+                document.getElementById("plainText").value = plainText;
+            } catch (error) {
+                console.error("Decryption failed:", error.message);
+                alert("Decryption failed. Please check your input or key.");
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>ElGamal Encryption</h1>
+    <div>
+        <h2>Encrypt</h2>
+        <textarea id="plainText" placeholder="Enter plain text"></textarea>
+        <button onclick="encrypt()">Encrypt</button>
+    </div>
+    <div>
+        <h2>Decrypt</h2>
+        <textarea id="cipherText" placeholder="Enter cipher text"></textarea>
+        <textarea id="key" placeholder='Enter key (JSON format)'></textarea>
+        <button onclick="decrypt()">Decrypt</button>
+    </div>
+    <a href="main.html" class="back-link">Back to Home</a>
+</body>
+</html>

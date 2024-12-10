@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shift Cipher</title>
+    <!-- Liên kết file CSS -->
+    <link rel="stylesheet" type="text/css" href="shiftCipher.css">
+    <!-- Liên kết file JavaScript -->
+    <script src="function/shiftCipher.js"></script>
+    <script>
+        function measureTime(func, ...args) {
+            const start = performance.now();
+            const result = func(...args);
+            const end = performance.now();
+            return { result, time: (end - start).toFixed(2) };
+        }
+
+        function encrypt() {
+            const plainText = document.getElementById("plainText").value;
+
+            if (!plainText) {
+                alert("Please enter plain text to encrypt.");
+                return;
+            }
+
+            const { result, time } = measureTime(shiftCipherEncryptAuto, plainText);
+
+            document.getElementById("cipherText").value = result.cipherText;
+            document.getElementById("key").value = result.key;
+            document.getElementById("time").innerText = `Encryption Time: ${time} ms`;
+        }
+
+        function decrypt() {
+            const cipherText = document.getElementById("cipherText").value;
+            const key = parseInt(document.getElementById("key").value);
+
+            if (!cipherText || isNaN(key)) {
+                alert("Please enter cipher text and key to decrypt.");
+                return;
+            }
+
+            const { result, time } = measureTime(shiftCipherDecrypt, cipherText, key);
+
+            document.getElementById("plainText").value = result;
+            document.getElementById("time").innerText = `Decryption Time: ${time} ms`;
+        }
+    </script>
+</head>
+<body>
+    <h1>Shift Cipher</h1>
+
+    <div class="section">
+        <h2>Encrypt</h2>
+        <textarea id="plainText" placeholder="Enter plain text"></textarea>
+        <button onclick="encrypt()">Encrypt</button>
+    </div>
+
+    <div class="section">
+        <h2>Decrypt</h2>
+        <textarea id="cipherText" placeholder="Enter cipher text"></textarea>
+        <input id="key" type="text" placeholder="Enter key">
+        <button onclick="decrypt()">Decrypt</button>
+    </div>
+
+    <div id="time" class="output"></div>
+
+    <a href="main.html" class="back-link">Back to Home</a>
+</body>
+</html>
