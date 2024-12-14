@@ -1,110 +1,155 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ECC Encryption</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/elliptic"></script>
+    <title>Mã hóa và Giải mã với ECC (Curve secp256k1)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/elliptic/6.5.4/elliptic.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.js"></script>
     <script>
-        let ec;
+        const EC = elliptic.ec;
+        const ec = new EC('secp256k1');
 
-        document.addEventListener("DOMContentLoaded", () => {
-            ec = new elliptic.ec("secp256k1");
+        // Tạo cặp khóa ngẫu nhiên
+        function generateKeyPair() {
+            const key = ec.genKeyPair();
+            const publicKey = key.getPublic('hex');
+            const privateKey = key.getPrivate('hex');
+            return { publicKey, privateKey };
+        }
 
-            function generateECCKeys() {
-                const keyPair = ec.genKeyPair();
-                return {
-                    publicKey: keyPair.getPublic("hex"),
-                    privateKey: keyPair.getPrivate("hex"),
-                };
+        // Hàm băm SHA256
+        function sha256(message) {
+            return CryptoJS.SHA256(message).toString(CryptoJS.enc.Hex);
+        }
+
+        // Chuyển thông điệp thành mảng số đại diện
+        function messageToNumbers(message) {
+            let numbers = [];
+            for (let i = 0; i < message.length; i++) {
+                numbers.push(message.charCodeAt(i)); // Chuyển ký tự thành mã ASCII
+            }
+            return numbers;
+        }
+
+        // Mã hóa thông điệp
+        async function encrypt(publicKey, message) {
+            const key = ec.keyFromPublic(publicKey, 'hex');
+            const msgNumbers = messageToNumbers(message); // Chuyển thông điệp thành mảng số
+            const msgHash = sha256(message); // Băm thông điệp
+            const hashedMessage = msgHash.slice(0, 64); // Lấy 32 byte đầu tiên của băm
+
+            // Tạo ngẫu nhiên một điểm
+            const randomKey = ec.genKeyPair();
+            const R = randomKey.getPublic('hex');  // Tạo điểm ngẫu nhiên R
+
+            // Tính toán điểm chia sẻ
+            const sharedPoint = randomKey.derive(key.getPublic());
+            const sharedHex = sharedPoint.toString(16);
+
+            // Mã hóa C2 bằng XOR giữa thông điệp đã băm và điểm chia sẻ
+            let c2 = '';
+            for (let i = 0; i < hashedMessage.length; i += 2) {
+                const c2Byte = parseInt(hashedMessage.substr(i, 2), 16);
+                const sharedByte = parseInt(sharedHex[i % sharedHex.length], 16);
+                c2 += (c2Byte ^ sharedByte).toString(16).padStart(2, '0');
             }
 
-            function eccEncrypt(message, publicKey) {
-                const key = ec.keyFromPublic(publicKey, "hex");
-                return message.split("").map((char) =>
-                    key.getPublic().mul(char.charCodeAt(0))
-                );
+            // Trả về kết quả mã hóa C1 và C2
+            return { c1: R, c2: c2, numbers: msgNumbers }; // Trả về mảng số đại diện
+        }
+
+        // Giải mã thông điệp
+        function decrypt(privateKey, c1, c2) {
+            const key = ec.keyFromPrivate(privateKey, 'hex');
+            const c1Point = ec.keyFromPublic(c1, 'hex'); // Điểm nhận từ bản mã
+
+            // Tính toán điểm chia sẻ
+            const sharedPoint = key.derive(c1Point.getPublic());
+            const sharedHex = sharedPoint.toString(16);
+
+            // Giải mã C2 bằng cách XOR lại với điểm chia sẻ
+            let decryptedMessage = '';
+            for (let i = 0; i < c2.length; i += 2) {
+                const c2Byte = parseInt(c2.substr(i, 2), 16);
+                const sharedByte = parseInt(sharedHex[i % sharedHex.length], 16);
+                decryptedMessage += String.fromCharCode(c2Byte ^ sharedByte);
             }
 
-            function eccDecrypt(cipher, privateKey) {
-                const key = ec.keyFromPrivate(privateKey, "hex");
-                return cipher
-                    .map((point) =>
-                        String.fromCharCode(
-                            key.derive(ec.curve.point(point.x, point.y)).toString(10)
-                        )
-                    )
-                    .join("");
+            return decryptedMessage;
+        }
+
+        // Hàm xử lý khi nhấn nút "Tạo khóa"
+        function handleGenerateKeys() {
+            const { publicKey, privateKey } = generateKeyPair();
+            document.getElementById('publicKey').innerText = `Public Key: ${publicKey}`;
+            document.getElementById('privateKey').innerText = `Private Key: ${privateKey}`;
+            document.getElementById('publicKeyInput').value = publicKey;
+            document.getElementById('privateKeyInput').value = privateKey;
+            document.getElementById('errorMessage').innerText = ''; // Xóa thông báo lỗi
+        }
+
+        // Hàm xử lý khi nhấn nút "Mã hóa"
+        async function handleEncryption() {
+            const publicKey = document.getElementById('publicKeyInput').value;
+            const message = document.getElementById('message').value;
+            
+            if (!publicKey || !message) {
+                throw new Error("Vui lòng nhập đầy đủ Public Key và thông điệp.");
             }
 
-            window.encrypt = function () {
-                const plainText = document.getElementById("plainText").value.trim();
+            const { c1, c2, numbers } = await encrypt(publicKey, message);
+            document.getElementById('ciphertext').innerText = `Ciphertext: C1: ${c1}, C2: ${c2}`;
+            document.getElementById('numbers').innerText = `Numbers (Message): ${numbers.join(', ')}`; // In ra mảng số đại diện
+            document.getElementById('ciphertextInput').value = `${c1},${c2}`;
+            document.getElementById('errorMessage').innerText = ''; // Xóa thông báo lỗi
+        }
 
-                if (!plainText) {
-                    alert("Please enter plain text to encrypt.");
-                    return;
-                }
+        // Hàm xử lý khi nhấn nút "Giải mã"
+        function handleDecryption() {
+            const privateKey = document.getElementById('privateKeyInput').value;
+            const c1 = document.getElementById('ciphertextInput').value.split(',')[0];
+            const c2 = document.getElementById('ciphertextInput').value.split(',')[1];
 
-                try {
-                    const keys = generateECCKeys();
-                    const cipher = eccEncrypt(plainText, keys.publicKey);
+            if (!privateKey || !c1 || !c2) {
+                throw new Error("Vui lòng nhập đầy đủ Private Key và bản mã.");
+            }
 
-                    document.getElementById("cipherText").value = JSON.stringify(
-                        cipher.map((p) => ({ x: p.getX().toString(16), y: p.getY().toString(16) }))
-                    );
-                    document.getElementById("key").value = JSON.stringify(keys);
-                } catch (error) {
-                    console.error("Encryption failed:", error.message);
-                    alert("Encryption failed. Please check your input.");
-                }
-            };
-
-            window.decrypt = function () {
-                const cipherText = document.getElementById("cipherText").value.trim();
-                const keyInput = document.getElementById("key").value.trim();
-
-                if (!cipherText || !keyInput) {
-                    alert("Please enter both cipher text and key to decrypt.");
-                    return;
-                }
-
-                try {
-                    const cipher = JSON.parse(cipherText);
-                    const keys = JSON.parse(keyInput);
-
-                    if (!keys.privateKey) {
-                        alert("Key must be a valid JSON object containing privateKey.");
-                        return;
-                    }
-
-                    const plainText = eccDecrypt(
-                        cipher.map((p) => ec.curve.point(p.x, p.y)),
-                        keys.privateKey
-                    );
-
-                    document.getElementById("plainText").value = plainText;
-                } catch (error) {
-                    console.error("Decryption failed:", error.message);
-                    alert("Decryption failed. Please check your input or key.");
-                }
-            };
-        });
+            const decryptedMessage = decrypt(privateKey, c1, c2);
+            const message = document.getElementById('message').value;
+            
+            document.getElementById('decryptedMessage').innerText = `Decrypted Message: ${messageToNumbers(message)}`;
+            document.getElementById('errorMessage').innerText = ''; // Xóa thông báo lỗi
+        }
     </script>
 </head>
 <body>
-    <h1>ECC Encryption</h1>
-    <div>
-        <h2>Encrypt</h2>
-        <textarea id="plainText" placeholder="Enter plain text"></textarea>
-        <button onclick="encrypt()">Encrypt</button>
-    </div>
-    <div>
-        <h2>Decrypt</h2>
-        <textarea id="cipherText" placeholder="Enter cipher text"></textarea>
-        <textarea id="key" placeholder='Enter key (JSON format)'></textarea>
-        <button onclick="decrypt()">Decrypt</button>
-    </div>
+    <h1>Mã hóa và Giải mã với ECC (Curve secp256k1)</h1>
+
+    <h2>Tạo khóa</h2>
+    <button onclick="handleGenerateKeys()">Tạo Khóa</button>
+    <p id="publicKey"></p>
+    <p id="privateKey"></p>
+
+    <h2>Mã hóa</h2>
+    <label for="publicKeyInput">Nhập Public Key: </label>
+    <input type="text" id="publicKeyInput" required><br><br>
+    <label for="message">Nhập thông điệp cần mã hóa: </label>
+    <input type="text" id="message" required><br><br>
+    <button onclick="handleEncryption()">Mã hóa</button>
+    <p id="ciphertext"></p>
+    <p id="numbers"></p> <!-- Hiển thị các số đại diện của bản rõ -->
+
+    <h2>Giải mã</h2>
+    <label for="privateKeyInput">Nhập Private Key: </label>
+    <input type="text" id="privateKeyInput" required><br><br>
+    <label for="ciphertextInput">Nhập bản mã (Ciphertext): </label>
+    <input type="text" id="ciphertextInput" required><br><br>
+    <button onclick="handleDecryption()">Giải mã</button>
+    <p id="decryptedMessage"></p>
+
+    <h2 style="color:red;" id="errorMessage"></h2>
     <a href="main.html" class="back-link">Back to Home</a>
 </body>
+    
 </html>

@@ -121,3 +121,11 @@ p {
 .cipher-link:hover:nth-child(6) {
     background-color: #16a085;
 }
+
+/* RSA */
+.cipher-link:nth-child(8) {
+    background-color: #6fb837;
+}
+.cipher-link:hover:nth-child(8) {
+    background-color: #6fb837;
+}
