@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate RSA Keys & Encrypt</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsencrypt/3.0.0/jsencrypt.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        textarea, input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .output {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Generate RSA Keys & Encrypt Input</h2>
+        <img src="rsa_gop.png" alt="Quy trình" style="max-width: 80%; height: auto; margin-bottom: 20px;">
+        
+        <!-- Thêm ảnh vào trang -->
+        <!-- Generate RSA Keys -->
+        <button onclick="generateKeys()">Generate RSA Keys</button>
+    
+        <h3>Public Key:</h3>
+        <textarea id="publicKey" readonly></textarea>
+
+        <h3>Private Key:</h3>
+        <textarea id="privateKey" readonly></textarea>
+
+        <!-- Input text for encryption -->
+        <h3>Enter Text to Encrypt:</h3>
+        <input type="text" id="inputText" placeholder="Enter text here">
+
+        <!-- Encrypt the input -->
+        <button onclick="encryptInput()">Encrypt Text</button>
+
+        <h3>Encrypted Text:</h3>
+        <textarea id="encryptedText" readonly class="output"></textarea>
+    </div>
+
+    <script>
+        let publicKey = '';
+        let privateKey = '';
+
+        // Function to generate RSA keys
+        function generateKeys() {
+            const keyGenerator = new JSEncrypt({ default_key_size: 2048 }); // 2048-bit keys
+            keyGenerator.getKey();
+
+            // Store keys
+            publicKey = keyGenerator.getPublicKey();
+            privateKey = keyGenerator.getPrivateKey();
+
+            // Display keys in the UI
+            document.getElementById("publicKey").value = publicKey;
+            document.getElementById("privateKey").value = privateKey;
+        }
+
+        // Function to encrypt the input text
+        function encryptInput() {
+            const inputText = document.getElementById("inputText").value;
+
+            if (!publicKey) {
+                alert("Please generate RSA keys first!");
+                return;
+            }
+
+            if (!inputText) {
+                alert("Please enter text to encrypt!");
+                return;
+            }
+
+            // Create a new JSEncrypt object and set the public key
+            const encryptor = new JSEncrypt();
+            encryptor.setPublicKey(publicKey);
+
+            // Encrypt the input text
+            const encrypted = encryptor.encrypt(inputText);
+
+            if (encrypted) {
+                document.getElementById("encryptedText").value = encrypted;
+            } else {
+                alert("Encryption failed. Please check your input.");
+            }
+        }
+    </script>
+
+    <a href="RSA_giaiMa.html" class="cipher-link">Giải mã bằng hệ mật RSA</a>
+    <a href="main.html" class="back-link">Back to Home</a>
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Mật Thay Thế</title>
+    <link rel="stylesheet" type="text/css" href="substitutionCipher.css">
+    <script src="function/substitutionCipher.js"></script>
+    <script>
+        function measureTime(func, ...args) {
+            const start = performance.now();
+            const result = func(...args);
+            const end = performance.now();
+            return { result, time: (end - start).toFixed(2) };
+        }
+
+        function encrypt() {
+            const plainText = document.getElementById("plainText").value.trim();
+
+            if (!plainText) {
+                alert("Vui lòng nhập văn bản gốc để mã hóa.");
+                return;
+            }
+
+            try {
+                const { cipherText, key } = substitutionEncryptAuto(plainText);
+
+                document.getElementById("cipherText").value = cipherText;
+                document.getElementById("key").value = key;
+                document.getElementById("time").innerText = `Thời gian mã hóa: ${key.length} ms`;
+            } catch (error) {
+                console.error("Mã hóa thất bại:", error);
+                alert("Mã hóa thất bại. Vui lòng kiểm tra lại đầu vào.");
+            }
+        }
+
+        function decrypt() {
+            const cipherText = document.getElementById("cipherText").value.trim();
+            const key = document.getElementById("key").value.trim();
+
+            if (!cipherText || !key) {
+                alert("Vui lòng nhập cả văn bản mã hóa và khóa để giải mã.");
+                return;
+            }
+
+            if (key.length !== 26) {
+                alert("Khóa phải có đúng 26 ký tự.");
+                return;
+            }
+
+            try {
+                const plainText = substitutionDecrypt(cipherText, key);
+
+                document.getElementById("plainText").value = plainText;
+                document.getElementById("time").innerText = `Giải mã thành công.`;
+            } catch (error) {
+                console.error("Giải mã thất bại:", error);
+                alert("Giải mã thất bại. Vui lòng kiểm tra lại đầu vào hoặc khóa.");
+            }
+        }
+    </script>
+    <style>
+        /* Đặt bố cục chia đôi màn hình */
+        body {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f7f6;
+        }
+
+        /* Phần kiến thức về hệ mật Thay Thế */
+        .knowledge {
+            width: 30%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            overflow-y: auto;
+            padding: 30px;
+            background-color: #ffffff;
+            border-right: 2px solid #ddd;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            font-size: 16px;
+        }
+
+        .knowledge h2 {
+            font-size: 22px;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .knowledge p {
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        .knowledge code {
+            font-family: "Courier New", Courier, monospace;
+            background-color: #f4f4f4;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        /* Phần công cụ mã hóa và giải mã */
+        .tool {
+            margin-left: 35%; /* Đẩy phần công cụ sang phải */
+            padding: 20px;
+            width: 60%;
+            background-color: #ffffff;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h1, h2 {
+            font-size: 24px;
+            color: #333;
+        }
+
+        textarea, input[type="text"] {
+            width: 100%;
+            height: 40px;
+            padding: 10px;
+            font-size: 16px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 12px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .output {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #555;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            font-size: 16px;
+            color: #007BFF;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <!-- Phần kiến thức về hệ mật Thay Thế -->
+    <div class="knowledge">
+        <h2>Kiến thức về Hệ Mật Thay Thế</h2>
+        <p>
+            Hệ mật Thay Thế là một loại hệ mật trong đó mỗi ký tự trong văn bản gốc được thay thế bằng một ký tự khác trong bảng chữ cái theo một quy tắc xác định (khóa).
+        </p>
+        <p>
+            Trong hệ mật thay thế, khóa là một chuỗi gồm 26 ký tự đại diện cho toàn bộ bảng chữ cái, với mỗi ký tự trong văn bản gốc sẽ được thay thế bằng ký tự tương ứng trong khóa.
+        </p>
+        <p>
+            Ví dụ: Nếu khóa là <code>QWERTYUIOPASDFGHJKLZXCVBNM</code>, thì ký tự 'A' trong văn bản gốc sẽ được thay thế bằng 'Q', 'B' sẽ được thay bằng 'W', và cứ như vậy.
+        </p>
+        <p>
+            Công thức mã hóa: <code>C = P[key[i]]</code>, trong đó <code>P</code> là văn bản gốc và <code>key[i]</code> là ký tự thay thế cho ký tự thứ i trong bảng chữ cái.
+        </p>
+        <p>
+            Để giải mã, bạn cần phải sử dụng khóa ngược lại, tức là thay thế các ký tự mã hóa bằng các ký tự trong bảng chữ cái gốc.
+        </p>
+    </div>
+
+    <!-- Phần công cụ mã hóa và giải mã -->
+    <div class="tool">
+        <h1>Hệ Mật Thay Thế</h1>
+
+        <div>
+            <h2>Mã hóa</h2>
+            <textarea id="plainText" placeholder="Nhập văn bản gốc"></textarea>
+            <button onclick="encrypt()">Mã hóa</button>
+        </div>
+
+        <div>
+            <h2>Giải mã</h2>
+            <textarea id="cipherText" placeholder="Nhập văn bản mã hóa"></textarea>
+            <input id="key" type="text" placeholder="Nhập khóa (26 ký tự)">
+            <button onclick="decrypt()">Giải mã</button>
+        </div>
+
+        <div id="time" class="output"></div>
+
+        <a href="main.html" class="back-link">Quay lại trang chủ</a>
+    </div>
+</body>
+</html>

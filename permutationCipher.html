@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Mật Hoán Vị</title>
+    <link rel="stylesheet" type="text/css" href="permutationCipher.css">
+    <script src="function/permutationCipher.js"></script>
+    <script>
+        function encrypt() {
+            const plainText = document.getElementById("plainText").value.trim();
+
+            if (!plainText) {
+                alert("Vui lòng nhập văn bản gốc để mã hóa.");
+                return;
+            }
+
+            try {
+                const { cipherText, key } = permutationEncryptAuto(plainText);
+
+                document.getElementById("cipherText").value = cipherText;
+                document.getElementById("key").value = JSON.stringify(key);
+            } catch (error) {
+                console.error("Mã hóa thất bại:", error.message);
+                alert("Mã hóa thất bại. Vui lòng kiểm tra lại đầu vào.");
+            }
+        }
+
+        function decrypt() {
+            const cipherText = document.getElementById("cipherText").value.trim();
+            const keyInput = document.getElementById("key").value.trim();
+
+            if (!cipherText || !keyInput) {
+                alert("Vui lòng nhập cả văn bản mã hóa và khóa để giải mã.");
+                return;
+            }
+
+            try {
+                const key = JSON.parse(keyInput);
+
+                if (!Array.isArray(key) || key.some((v) => typeof v !== "number")) {
+                    alert("Khóa phải là một mảng số hợp lệ (ví dụ: [2,0,3,1]).");
+                    return;
+                }
+
+                const plainText = permutationDecrypt(cipherText, key);
+
+                document.getElementById("plainText").value = plainText;
+            } catch (error) {
+                console.error("Giải mã thất bại:", error.message);
+                alert("Giải mã thất bại. Vui lòng kiểm tra lại đầu vào hoặc khóa.");
+            }
+        }
+    </script>
+    <style>
+        /* Đặt bố cục chia đôi màn hình */
+        body {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f7f6;
+        }
+
+        /* Phần kiến thức về hệ mật Hoán Vị */
+        .knowledge {
+            width: 30%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            overflow-y: auto;
+            padding: 30px;
+            background-color: #ffffff;
+            border-right: 2px solid #ddd;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            font-size: 16px;
+        }
+
+        .knowledge h2 {
+            font-size: 22px;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .knowledge p {
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        .knowledge code {
+            font-family: "Courier New", Courier, monospace;
+            background-color: #f4f4f4;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        /* Phần công cụ mã hóa và giải mã */
+        .tool {
+            margin-left: 35%; /* Đẩy phần công cụ sang phải */
+            padding: 20px;
+            width: 60%;
+            background-color: #ffffff;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h1, h2 {
+            font-size: 24px;
+            color: #333;
+        }
+
+        textarea, input[type="text"] {
+            width: 100%;
+            height: 40px;
+            padding: 10px;
+            font-size: 16px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 12px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .output {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #555;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            font-size: 16px;
+            color: #007BFF;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <!-- Phần kiến thức về hệ mật hoán vị -->
+    <div class="knowledge">
+        <h2>Kiến thức về Hệ Mật Hoán Vị</h2>
+        <p>
+            Hệ mật Hoán Vị là một loại hệ mật thay đổi vị trí các ký tự trong văn bản theo một mẫu khóa xác định trước. Khóa trong hệ mật hoán vị là một mảng các chỉ số, mỗi chỉ số xác định vị trí mới của các ký tự trong văn bản gốc.
+        </p>
+        <p>
+            Để mã hóa, các ký tự trong văn bản gốc sẽ được hoán đổi vị trí theo các chỉ số trong khóa. Ví dụ, nếu khóa là <code>[2, 0, 3, 1]</code>, ký tự đầu tiên của văn bản gốc sẽ được chuyển tới vị trí thứ hai, ký tự thứ hai đến vị trí đầu tiên, và cứ như vậy.
+        </p>
+        <p>
+            Công thức chung để mã hóa với hệ mật hoán vị là: 
+            <code>C = P[key[0]], P[key[1]], ..., P[key[n-1]]</code>, 
+            trong đó <code>C</code> là văn bản mã hóa, <code>P</code> là văn bản gốc, và <code>key</code> là khóa xác định cách hoán đổi các ký tự.
+        </p>
+        <p>
+            Để giải mã, quá trình ngược lại sẽ được thực hiện, sử dụng khóa ngược lại với khóa ban đầu. Công thức giải mã là: 
+            <code>P = C[key_inv[0]], C[key_inv[1]], ..., C[key_inv[n-1]]</code>, 
+            trong đó <code>key_inv</code> là khóa ngược lại.
+        </p>
+    </div>
+
+    <!-- Phần công cụ mã hóa và giải mã -->
+    <div class="tool">
+        <h1>Hệ Mật Hoán Vị</h1>
+        <div>
+            <h2>Mã hóa</h2>
+            <textarea id="plainText" placeholder="Nhập văn bản gốc"></textarea>
+            <button onclick="encrypt()">Mã hóa</button>
+        </div>
+        <div>
+            <h2>Giải mã</h2>
+            <textarea id="cipherText" placeholder="Nhập văn bản mã hóa"></textarea>
+            <input id="key" type="text" placeholder='Nhập khóa (ví dụ: [2,0,3,1])'>
+            <button onclick="decrypt()">Giải mã</button>
+        </div>
+
+        <a href="main.html" class="back-link">Quay lại trang chủ</a>
+    </div>
+</body>
+</html>
