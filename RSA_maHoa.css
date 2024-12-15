@@ -1,0 +1,136 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f7;
+    margin: 0;
+    padding: 20px;
+    line-height: 1.6;
+    color: #333;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    text-align: center;
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+h3 {
+    color: #2980b9;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+img {
+    display: block;
+    margin: 20px auto;
+    max-width: 80%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+textarea, input[type="text"] {
+    width: 100%;
+    min-height: 100px;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    resize: vertical;
+    font-family: monospace;
+    background-color: #f9f9f9;
+    transition: border-color 0.3s ease;
+}
+
+input[type="text"] {
+    min-height: 50px;
+}
+
+textarea:focus, input[type="text"]:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+}
+
+textarea#publicKey, textarea#privateKey {
+    background-color: #f0f4f8;
+    cursor: text;
+}
+
+textarea#encryptedText {
+    background-color: #e6f2ff;
+    color: #2c3e50;
+    cursor: text;
+}
+
+button {
+    display: block;
+    width: 100%;
+    max-width: 250px;
+    margin: 20px auto;
+    padding: 10px 20px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-weight: bold;
+}
+
+button:hover {
+    background-color: #2980b9;
+}
+
+.cipher-link, .back-link {
+    display: block;
+    text-align: center;
+    margin-top: 20px;
+    color: #2980b9;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.cipher-link:hover, .back-link:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 15px;
+        margin: 0 10px;
+    }
+
+    textarea, input[type="text"], button {
+        width: 100%;
+    }
+
+    img {
+        max-width: 100%;
+    }
+}
+
+/* Placeholder styles */
+::placeholder {
+    color: #a9a9a9;
+    font-style: italic;
+}
+
+/* Add some visual distinction between generate and encrypt buttons */
+button:first-of-type {
+    background-color: #2ecc71;
+}
+
+button:first-of-type:hover {
+    background-color: #27ae60;
+}
