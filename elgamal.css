@@ -10,23 +10,23 @@ body {
 
 h1 {
     text-align: center;
-    color: #2c3e50;
-    border-bottom: 2px solid #3498db;
+    color: #e91e63; /* Pink */
+    border-bottom: 2px solid #ff4081; /* Light pink */
     padding-bottom: 10px;
     margin-bottom: 30px;
 }
 
 h2 {
-    color: #2980b9;
+    color: #f06292; /* Soft pink */
     margin-top: 30px;
-    border-bottom: 1px solid #bdc3c7;
+    border-bottom: 1px solid #f8bbd0; /* Light pink border */
     padding-bottom: 10px;
 }
 
 h3 {
-    background-color: #ecf0f1;
+    background-color: #fce4ec; /* Light pink background */
     padding: 10px;
-    border-left: 4px solid #3498db;
+    border-left: 4px solid #ff4081; /* Light pink */
     margin: 10px 0;
     word-wrap: break-word;
     overflow-wrap: break-word;
@@ -36,14 +36,14 @@ label {
     display: block;
     margin-bottom: 5px;
     font-weight: bold;
-    color: #34495e;
+    color: #ad1457; /* Deep pink */
 }
 
 input {
     width: 100%;
     padding: 10px;
     margin-bottom: 15px;
-    border: 1px solid #bdc3c7;
+    border: 1px solid #f8bbd0; /* Light pink border */
     border-radius: 4px;
     box-sizing: border-box;
     transition: border-color 0.3s ease;
@@ -51,8 +51,8 @@ input {
 
 input:focus {
     outline: none;
-    border-color: #3498db;
-    box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+    border-color: #ff4081; /* Light pink */
+    box-shadow: 0 0 5px rgba(255, 64, 129, 0.5); /* Light pink shadow */
 }
 
 input[type="number"] {
@@ -62,7 +62,7 @@ input[type="number"] {
 }
 
 button {
-    background-color: #3498db;
+    background-color: #ff4081; /* Light pink */
     color: white;
     border: none;
     padding: 10px 20px;
@@ -75,12 +75,12 @@ button {
 }
 
 button:hover {
-    background-color: #2980b9;
+    background-color: #f06292; /* Soft pink */
 }
 
 #publicKey, #privateKey, #plainNum, #cipherText, #decryptedMessage {
-    background-color: #ecf0f1;
-    border-left: 4px solid #3498db;
+    background-color: #fce4ec; /* Light pink background */
+    border-left: 4px solid #ff4081; /* Light pink */
     padding: 10px;
     margin: 10px 0;
     word-break: break-all;
@@ -90,7 +90,7 @@ button:hover {
     display: block;
     text-align: center;
     margin-top: 20px;
-    color: #2980b9;
+    color: #f06292; /* Soft pink */
     text-decoration: none;
     font-weight: bold;
 }
@@ -111,14 +111,14 @@ button:hover {
 
 /* Additional styles for specific elements */
 #decryptedMessage {
-    color: #27ae60; /* Green color for decrypted message */
+    color: #d81b60; /* Deep pink for decrypted message */
     font-weight: bold;
 }
 
 #cipherText {
-    color: #8e44ad; /* Purple color for cipher text */
+    color: #c2185b; /* Dark pink for cipher text */
 }
 
 #publicKey, #privateKey {
-    color: #2c3e50; /* Dark blue-gray for keys */
+    color: #ad1457; /* Deep pink for keys */
 }

@@ -23,11 +23,12 @@
             }
 
             try {
-                const { cipherText, key } = substitutionEncryptAuto(plainText);
+                // Sử dụng measureTime để đo thời gian
+                const { result: { cipherText, key }, time } = measureTime(substitutionEncryptAuto, plainText);
 
                 document.getElementById("cipherText").value = cipherText;
                 document.getElementById("key").value = key;
-                document.getElementById("time").innerText = `Thời gian mã hóa: ${key.length} ms`;
+                document.getElementById("time").innerText = `Thời gian mã hóa: ${time} ms`;
             } catch (error) {
                 console.error("Mã hóa thất bại:", error);
                 alert("Mã hóa thất bại. Vui lòng kiểm tra lại đầu vào.");
@@ -49,10 +50,11 @@
             }
 
             try {
-                const plainText = substitutionDecrypt(cipherText, key);
+                // Sử dụng measureTime để đo thời gian
+                const { result: plainText, time } = measureTime(substitutionDecrypt, cipherText, key);
 
                 document.getElementById("plainText").value = plainText;
-                document.getElementById("time").innerText = `Giải mã thành công.`;
+                document.getElementById("time").innerText = `Giải mã thành công. Thời gian giải mã: ${time} ms`;
             } catch (error) {
                 console.error("Giải mã thất bại:", error);
                 alert("Giải mã thất bại. Vui lòng kiểm tra lại đầu vào hoặc khóa.");

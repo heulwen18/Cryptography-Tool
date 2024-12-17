@@ -16,10 +16,17 @@
             }
 
             try {
+                const startTime = Date.now();  // Thời gian bắt đầu mã hóa
+
                 const { cipherText, key } = permutationEncryptAuto(plainText);
+
+                const endTime = Date.now();  // Thời gian kết thúc mã hóa
+                const encryptionTime = (endTime - startTime) / 1000;  // Thời gian mã hóa tính bằng giây
 
                 document.getElementById("cipherText").value = cipherText;
                 document.getElementById("key").value = JSON.stringify(key);
+                document.getElementById("encryptionTime").textContent = `Thời gian mã hóa: ${encryptionTime.toFixed(4)} giây`;
+
             } catch (error) {
                 console.error("Mã hóa thất bại:", error.message);
                 alert("Mã hóa thất bại. Vui lòng kiểm tra lại đầu vào.");
@@ -36,6 +43,8 @@
             }
 
             try {
+                const startTime = Date.now();  // Thời gian bắt đầu giải mã
+
                 const key = JSON.parse(keyInput);
 
                 if (!Array.isArray(key) || key.some((v) => typeof v !== "number")) {
@@ -45,7 +54,12 @@
 
                 const plainText = permutationDecrypt(cipherText, key);
 
+                const endTime = Date.now();  // Thời gian kết thúc giải mã
+                const decryptionTime = (endTime - startTime) / 1000;  // Thời gian giải mã tính bằng giây
+
                 document.getElementById("plainText").value = plainText;
+                document.getElementById("decryptionTime").textContent = `Thời gian giải mã: ${decryptionTime.toFixed(4)} giây`;
+
             } catch (error) {
                 console.error("Giải mã thất bại:", error.message);
                 alert("Giải mã thất bại. Vui lòng kiểm tra lại đầu vào hoặc khóa.");
@@ -157,6 +171,13 @@
         .back-link:hover {
             text-decoration: underline;
         }
+
+        /* Hiển thị thời gian mã hóa và giải mã */
+        .time-info {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #555;
+        }
     </style>
 </head>
 <body>
@@ -188,12 +209,14 @@
             <h2>Mã hóa</h2>
             <textarea id="plainText" placeholder="Nhập văn bản gốc"></textarea>
             <button onclick="encrypt()">Mã hóa</button>
+            <p id="encryptionTime" class="time-info"></p>
         </div>
         <div>
             <h2>Giải mã</h2>
             <textarea id="cipherText" placeholder="Nhập văn bản mã hóa"></textarea>
             <input id="key" type="text" placeholder='Nhập khóa (ví dụ: [2,0,3,1])'>
             <button onclick="decrypt()">Giải mã</button>
+            <p id="decryptionTime" class="time-info"></p>
         </div>
 
         <a href="main.html" class="back-link">Quay lại trang chủ</a>

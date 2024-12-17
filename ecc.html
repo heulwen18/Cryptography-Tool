@@ -99,11 +99,18 @@
                 throw new Error("Vui lòng nhập đầy đủ Public Key và thông điệp.");
             }
 
+            const startTime = performance.now(); // Thời gian bắt đầu mã hóa
             const { c1, c2, numbers } = await encrypt(publicKey, message);
+            const endTime = performance.now(); // Thời gian kết thúc mã hóa
+
             document.getElementById('ciphertext').innerText = `Ciphertext: C1: ${c1}, C2: ${c2}`;
             document.getElementById('numbers').innerText = `Numbers (Message): ${numbers.join(', ')}`; // In ra mảng số đại diện
             document.getElementById('ciphertextInput').value = `${c1},${c2}`;
             document.getElementById('errorMessage').innerText = ''; // Xóa thông báo lỗi
+
+            // Hiển thị thời gian mã hóa
+            const elapsedTime = endTime - startTime;
+            document.getElementById('encryptionTime').innerText = `Thời gian mã hóa: ${elapsedTime.toFixed(4)} ms`;
         }
 
         // Hàm xử lý khi nhấn nút "Giải mã"
@@ -113,14 +120,20 @@
             const c2 = document.getElementById('ciphertextInput').value.split(',')[1];
 
             if (!privateKey || !c1 || !c2) {
-                throw new Error("Vui lòng nhập đầy đủ Private Key và bản mã.");
+                document.getElementById('errorMessage').innerText = "Vui lòng nhập đầy đủ Private Key và bản mã.";
+                return;
             }
 
+            const startTime = performance.now(); // Thời gian bắt đầu giải mã
             const decryptedMessage = decrypt(privateKey, c1, c2);
-            const message = document.getElementById('message').value;
+            const endTime = performance.now(); // Thời gian kết thúc giải mã
             
-            document.getElementById('decryptedMessage').innerText = `Decrypted Message: ${messageToNumbers(message)}`;
+           // document.getElementById('decryptedMessage').innerText = `Decrypted Message: ${decryptedMessage}`;
             document.getElementById('errorMessage').innerText = ''; // Xóa thông báo lỗi
+
+            // Hiển thị thời gian giải mã
+            const elapsedTime = endTime - startTime;
+            document.getElementById('decryptionTime').innerText = `Thời gian giải mã: ${elapsedTime.toFixed(4)} ms`;
         }
     </script>
 </head>
@@ -140,6 +153,7 @@
     <button onclick="handleEncryption()">Mã hóa</button>
     <p id="ciphertext"></p>
     <p id="numbers"></p> <!-- Hiển thị các số đại diện của bản rõ -->
+    <p id="encryptionTime"></p> <!-- Hiển thị thời gian mã hóa -->
 
     <h2>Giải mã</h2>
     <label for="privateKeyInput">Nhập Private Key: </label>
@@ -148,9 +162,9 @@
     <input type="text" id="ciphertextInput" required><br><br>
     <button onclick="handleDecryption()">Giải mã</button>
     <p id="decryptedMessage"></p>
+    <p id="decryptionTime"></p> <!-- Hiển thị thời gian giải mã -->
 
     <h2 style="color:red;" id="errorMessage"></h2>
     <a href="main.html" class="back-link">Back to Home</a>
 </body>
-    
 </html>

@@ -31,6 +31,10 @@
 
         <h3>Encrypted Text:</h3>
         <textarea id="encryptedText" readonly class="output"></textarea>
+
+        <!-- Display encryption time -->
+        <h3>Encryption Time:</h3>
+        <p id="encryptionTime">Time: 0 ms</p>
     </div>
 
     <script>
@@ -69,6 +73,9 @@
             const encryptor = new JSEncrypt();
             encryptor.setPublicKey(publicKey);
 
+            // Record the start time
+            const startTime = performance.now();
+
             // Encrypt the input text
             const encrypted = encryptor.encrypt(inputText);
 
@@ -77,6 +84,13 @@
             } else {
                 alert("Encryption failed. Please check your input.");
             }
+
+            // Record the end time and calculate the encryption time
+            const endTime = performance.now();
+            const encryptionTime = (endTime - startTime).toFixed(4); // Time in milliseconds
+
+            // Display the encryption time
+            document.getElementById("encryptionTime").innerText = `Time: ${encryptionTime} ms`;
         }
     </script>
     <a href="RSA_giaiMa.html" class="cipher-link">Giải mã bằng hệ mật RSA</a>

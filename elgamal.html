@@ -3,43 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mã hóa ElGamal với Khóa Ngẫu Nhiên</title>
-    <link rel="stylesheet" type="text/css" href="elgamal.css">
-    <img src="Elgamal.png" alt="" style="max-width: 50%; height: auto; margin-bottom: 20px;">
         
+    <title>Mã hóa ElGamal với Khóa Ngẫu Nhiên</title>
+    <img src="Elgamal.png" alt="Quy trình" style="max-width: 100%; height: auto; margin-bottom: 20px;">
+    
+    <link rel="stylesheet" href="elgamal.css">
     <script>
-        // Hàm kiểm tra số nguyên tố
-        function isPrime(num) {
-            if (num <= 1) return false;
-            if (num <= 3) return true;
-            if (num % 2 === 0 || num % 3 === 0) return false;
-            let i = 5;
-            while (i * i <= num) {
-                if (num % i === 0 || num % (i + 2) === 0) return false;
-                i += 6;
+        // Miller-Rabin Primality Test
+        function millerRabinTest(n, k = 5) {
+            if (n <= 1) return false;
+            if (n === 2 || n === 3) return true;
+            if (n % 2 === 0) return false;
+
+            let d = n - 1;
+            let r = 0;
+            while (d % 2 === 0) {
+                d /= 2;
+                r += 1;
             }
+
+            for (let i = 0; i < k; i++) {
+                const a = Math.floor(Math.random() * (n - 3)) + 2;
+                let x = modExp(a, d, n);
+                if (x === 1 || x === n - 1) continue;
+
+                for (let j = 0; j < r - 1; j++) {
+                    x = modExp(x, 2, n);
+                    if (x === n - 1) break;
+                }
+
+                if (x !== n - 1) return false;
+            }
+
             return true;
         }
 
-        // Hàm sinh số nguyên tố ngẫu nhiên trong khoảng [min, max)
-        function generateRandomPrime(min, max) {
+        // Sinh số nguyên tố ngẫu nhiên lớn bằng Miller-Rabin (ít nhất 100 bit)
+        function generateLargeRandomPrime(minBits) {
             let prime;
+            const min = Math.pow(2, minBits - 1);  // Minimum value for the given bit length
+            const max = Math.pow(2, minBits) - 1;  // Maximum value for the given bit length
+
             do {
-                prime = randomInt(min, max);
-            } while (!isPrime(prime));
+                prime = Math.floor(Math.random() * (max - min + 1)) + min;
+            } while (!millerRabinTest(prime));
             return prime;
         }
 
-        // Hàm sinh số nguyên ngẫu nhiên trong khoảng [min, max)
-        function randomInt(min, max) {
-            return Math.floor(Math.random() * (max - min)) + min;
-        }
-
-        // Hàm tìm căn nguyên thủy của p
+        // Tìm căn nguyên thủy (primitive root)
         function findPrimitiveRoot(p) {
             const phi = p - 1;
             const factors = getPrimeFactors(phi);
-
             for (let g = 2; g < p; g++) {
                 let isPrimitiveRoot = true;
                 for (let factor of factors) {
@@ -50,10 +64,10 @@
                 }
                 if (isPrimitiveRoot) return g;
             }
-            return -1; // Không tìm thấy căn nguyên thủy
+            return -1;
         }
 
-        // Hàm lấy các ước số nguyên tố của n
+        // Lấy các ước số nguyên tố của n
         function getPrimeFactors(n) {
             const factors = new Set();
             while (n % 2 === 0) {
@@ -70,28 +84,7 @@
             return Array.from(factors);
         }
 
-        // Chuyển đổi chuỗi thành số dựa trên mã hóa Base64
-        function stringToNumber(str) {
-            const buffer = new TextEncoder().encode(str); // Mã hóa chuỗi thành bytes
-            let number = 0;
-            for (let i = 0; i < buffer.length; i++) {
-                number = number * 256 + buffer[i];  // Tạo một số duy nhất từ các bytes
-            }
-            return number;
-        }
-
-        // Chuyển đổi số thành chuỗi
-        function numberToString(num) {
-            let str = '';
-            while (num > 0) {
-                const byte = num % 256;
-                str = String.fromCharCode(byte) + str; // Chuyển mỗi byte thành ký tự
-                num = Math.floor(num / 256);
-            }
-            return str;
-        }
-
-        // Hàm tính lũy thừa mô đun
+        // Lũy thừa mô đun
         function modExp(base, exp, mod) {
             let result = 1;
             base = base % mod;
@@ -105,7 +98,7 @@
             return result;
         }
 
-        // Hàm tính nghịch đảo mô đun (Sử dụng Thuật toán Euclid mở rộng)
+        // Nghịch đảo mô đun
         function modInverse(a, m) {
             let m0 = m, t, q;
             let x0 = 0, x1 = 1;
@@ -125,103 +118,119 @@
 
         // Tạo khóa công khai
         function generatePublicKey(p, g, a) {
-            const h = modExp(g, a, p); // h = g^a mod p
-            return { p, g, h };
+            return { p, g, h: modExp(g, a, p) };
         }
 
         // Mã hóa
         function encrypt(p, g, h, m, k) {
-            const c1 = modExp(g, k, p); // c1 = g^k mod p
-            const s = modExp(h, k, p);  // s = h^k mod p
-            const c2 = (m * s) % p;     // c2 = m * s mod p
+            const c1 = modExp(g, k, p);
+            const s = modExp(h, k, p);
+            const c2 = (m * s) % p;
             return { c1, c2 };
         }
 
         // Giải mã
         function decrypt(p, a, c1, c2) {
-            const s = modExp(c1, a, p);     // s = c1^a mod p
-            const sInv = modInverse(s, p);  // s^(-1) mod p
-            const m = (c2 * sInv) % p;      // m = c2 * s^(-1) mod p
-            return m;
+            const s = modExp(c1, a, p);
+            const sInv = modInverse(s, p);
+            return (c2 * sInv) % p;
         }
 
-        // Mã hóa và giải mã chuỗi
-        function handleEncryption() {
-            const p = generateRandomPrime(1000, 2000); // Sinh số nguyên tố ngẫu nhiên
-            const g = findPrimitiveRoot(p); // Tìm căn nguyên thủy của p
+        // Chuyển chuỗi thành số (theo mã ASCII)
+        function stringToNumber(str) {
+            let num = "";
+            for (let i = 0; i < str.length; i++) {
+                num += str.charCodeAt(i).toString();
+            }
+            return parseInt(num);
+        }
 
-            // Sinh khóa bí mật và số ngẫu nhiên
-            const a = randomInt(1, p - 1); // Khóa bí mật a
-            const k = randomInt(1, p - 1); // Số ngẫu nhiên k
+        // Hàm xử lý mã hóa
+        function handleEncryption() {
+            const startTime = performance.now();  // Thời điểm bắt đầu mã hóa
+
+            const p = generateLargeRandomPrime(25);  // Sinh số nguyên tố p ngẫu nhiên lớn (ít nhất 100 bit)
+            const g = findPrimitiveRoot(p);  // Tìm căn nguyên thủy g của p
+            if (g === -1) {
+                alert('Không tìm được căn nguyên thủy cho số nguyên tố này.');
+                return;
+            }
+            const a = Math.floor(Math.random() * (p - 2)) + 1; // Khóa bí mật a
+            const k = Math.floor(Math.random() * (p - 2)) + 1; // Khóa ngẫu nhiên k
 
             const message = document.getElementById("message").value;
+            if (message === "") {
+                alert('Vui lòng nhập thông điệp.');
+                return;
+            }
 
-            // Chuyển đổi chuỗi thành số
-            const m = stringToNumber(message);
+            const m = stringToNumber(message);  // Chuyển chuỗi thành số
+            const mModP = m % p;  // Chuyển số đó thành m mod p để mã hóa
 
-            // Tạo khóa công khai
-            const { h } = generatePublicKey(p, g, a);
-            document.getElementById("publicKey").innerText = `Khóa công khai: (p = ${p}, g = ${g}, h = ${h})`;
+            document.getElementById("clearNumber").innerText = `Số bản rõ (m mod p): ${mModP}`;
+
+            const publicKey = generatePublicKey(p, g, a);
+            const { c1, c2 } = encrypt(publicKey.p, publicKey.g, publicKey.h, mModP, k);
+
+            document.getElementById("publicKey").innerText = `Khóa công khai: (p = ${p}, g = ${g}, h = ${publicKey.h})`;
             document.getElementById("privateKey").innerText = `Khóa bí mật: a = ${a}`;
-            document.getElementById("plainNum").innerText = `Số rõ: m = ${m % p}`;
-
-            // Mã hóa
-            const { c1, c2 } = encrypt(p, g, h, m, k);
             document.getElementById("cipherText").innerText = `Bản mã: (c1 = ${c1}, c2 = ${c2})`;
 
-            // Lưu lại c1, c2 và khóa để giải mã
             document.getElementById("c1").value = c1;
             document.getElementById("c2").value = c2;
             document.getElementById("aDecrypt").value = a;
             document.getElementById("pDecrypt").value = p;
-           
+
+            const endTime = performance.now();  // Thời điểm kết thúc mã hóa
+            const encryptionTime = (endTime - startTime).toFixed(2);  // Tính thời gian mã hóa
+            document.getElementById("encryptionTime").innerText = `Thời gian mã hóa: ${encryptionTime} ms`;  // Hiển thị thời gian mã hóa
         }
 
-        // Xử lý giải mã khi người dùng nhấn nút "Giải mã"
+        // Hàm xử lý giải mã
         function handleDecryption() {
-            const p = parseInt(document.getElementById("pDecrypt").value);
+            const startTime = performance.now();  // Thời điểm bắt đầu giải mã
+
+            const p = parseInt(document.getElementById("pDecrypt").value);  // Đọc số nguyên từ giao diện
             const a = parseInt(document.getElementById("aDecrypt").value);
             const c1 = parseInt(document.getElementById("c1").value);
             const c2 = parseInt(document.getElementById("c2").value);
 
-            // Giải mã
             const m = decrypt(p, a, c1, c2);
+            document.getElementById("decryptedMessage").innerText = `Bản rõ sau giải mã: ${m % p}`;
 
-            // In ra số của bản rõ
-            document.getElementById("decryptedMessage").innerText = `Số của bản rõ sau giải mã: ${m % p}`;
+            const endTime = performance.now();  // Thời điểm kết thúc giải mã
+            const decryptionTime = (endTime - startTime).toFixed(2);  // Tính thời gian giải mã
+            document.getElementById("decryptionTime").innerText = `Thời gian giải mã: ${decryptionTime} ms`;  // Hiển thị thời gian giải mã
         }
     </script>
 </head>
 <body>
-    <h1>Mã hóa và Giải mã bằng ElGamal</h1>
+    <h1>Mã hóa ElGamal</h1>
 
-    <h2>Tạo khóa và Mã hóa</h2>
-    <label for="message">Nhập chuỗi cần mã hóa: </label>
-    <input type="text" id="message" required><br><br>
-
+    <h2>Mã hóa</h2>
+    <label for="message">Nhập thông điệp cần mã hóa: </label>
+    <input type="text" id="message" required>
     <button onclick="handleEncryption()">Mã hóa</button>
 
+    <h3 id="clearNumber"></h3> <!-- In số bản rõ -->
     <h3 id="publicKey"></h3>
     <h3 id="privateKey"></h3>
-    <h3 id="plainNum"></h3>
     <h3 id="cipherText"></h3>
+    <h3 id="encryptionTime"></h3> <!-- Hiển thị thời gian mã hóa -->
 
     <h2>Giải mã</h2>
-    <label for="c1">Nhập c1 (bản mã): </label>
-    <input type="number" id="c1" required><br><br>
-
-    <label for="c2">Nhập c2 (bản mã): </label>
-    <input type="number" id="c2" required><br><br>
-
+    <label for="c1">Nhập c1: </label>
+    <input type="number" id="c1" required>
+    <label for="c2">Nhập c2: </label>
+    <input type="number" id="c2" required>
     <label for="aDecrypt">Nhập khóa bí mật a: </label>
-    <input type="number" id="aDecrypt" required><br><br>
-
-    <label for="pDecrypt">Nhập số nguyên tố p: </label>
-    <input type="number" id="pDecrypt" required><br><br>
-
+    <input type="number" id="aDecrypt" required>
+    <label for="pDecrypt">Nhập p: </label>
+    <input type="number" id="pDecrypt" required>
     <button onclick="handleDecryption()">Giải mã</button>
 
     <h3 id="decryptedMessage"></h3>
+    <h3 id="decryptionTime"></h3> <!-- Hiển thị thời gian giải mã -->
     <a href="main.html" class="back-link">Back to Home</a>
 </body>
 </html>

@@ -16,11 +16,16 @@
             }
 
             try {
+                const startTime = performance.now(); // Bắt đầu đo thời gian
                 const { cipherText, keyMatrix, paddingCount } = hillEncryptAuto(plainText);
+                const endTime = performance.now(); // Kết thúc đo thời gian
 
                 document.getElementById("cipherText").value = cipherText;
                 document.getElementById("key").value = JSON.stringify(keyMatrix);
                 document.getElementById("paddingCount").value = paddingCount;
+
+                const elapsedTime = (endTime - startTime).toFixed(2); // Tính thời gian và làm tròn
+                document.getElementById("time").innerText = `Thời gian mã hóa: ${elapsedTime} ms`;
             } catch (error) {
                 console.error("Mã hóa thất bại:", error.message);
                 alert("Mã hóa thất bại. Vui lòng kiểm tra lại đầu vào.");
@@ -40,14 +45,20 @@
             try {
                 const keyMatrix = JSON.parse(keyMatrixInput);
 
+                const startTime = performance.now(); // Bắt đầu đo thời gian
                 const plainText = hillDecrypt(cipherText, keyMatrix, paddingCount);
-                const plainText2 = document.getElementById("plainText").value.trim();
-                document.getElementById("plainText").value = plainText2;
+                const endTime = performance.now(); // Kết thúc đo thời gian
+
+                document.getElementById("plainText").value = plainText;
+
+                const elapsedTime = (endTime - startTime).toFixed(2); // Tính thời gian và làm tròn
+                document.getElementById("time").innerText = `Thời gian giải mã: ${elapsedTime} ms`;
             } catch (error) {
                 console.error("Giải mã thất bại:", error.message);
                 alert("Giải mã thất bại. Vui lòng kiểm tra lại đầu vào hoặc ma trận khóa.");
             }
         }
+
     </script>
     <style>
         body {

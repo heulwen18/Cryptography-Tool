@@ -26,6 +26,10 @@
         <!-- Output for Decrypted Text -->
         <h3>Decrypted Text:</h3>
         <textarea id="decryptedText" readonly class="output"></textarea>
+
+        <!-- Display Decryption Time -->
+        <h3>Decryption Time:</h3>
+        <p id="decryptionTime">Time: 0 ms</p>
     </div>
 
     <script>
@@ -48,6 +52,9 @@
             const decryptor = new JSEncrypt();
             decryptor.setPrivateKey(privateKey);
 
+            // Record the start time
+            const startTime = performance.now();
+
             // Decrypt the ciphertext
             const decrypted = decryptor.decrypt(ciphertext);
 
@@ -57,6 +64,13 @@
             } else {
                 document.getElementById("decryptedText").value = "Decryption failed. Please check the inputs.";
             }
+
+            // Record the end time and calculate the decryption time
+            const endTime = performance.now();
+            const decryptionTime = (endTime - startTime).toFixed(4); // Time in milliseconds
+
+            // Display the decryption time
+            document.getElementById("decryptionTime").innerText = `Time: ${decryptionTime} ms`;
         }
     </script>
     <a href="RSA_maHoa.html" class="cipher-link">Mã hóa bằng hệ mật RSA</a>

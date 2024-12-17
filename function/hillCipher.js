@@ -1,82 +1,65 @@
 // Hàm tính GCD (Ước chung lớn nhất)
 const gcd = (a, b) => (!b ? a : gcd(b, a % b));
 
+// Hàm tính định thức của ma trận 2x2
+function determinant2x2(matrix) {
+    const [a, b] = matrix[0];
+    const [c, d] = matrix[1];
+    return (a * d - b * c) % 26;
+}
+
+// Hàm kiểm tra ma trận có khả nghịch hay không
+function isInvertible(matrix) {
+    const det = determinant2x2(matrix);
+    return det !== 0 && gcd((det + 26) % 26, 26) === 1;
+}
+
 // Hàm tính nghịch đảo modulo
 const modInverse = (a, m) => {
     for (let x = 1; x < m; x++) {
         if ((a * x) % m === 1) return x;
     }
-    return -1;
+    throw new Error(`Không có nghịch đảo modulo cho ${a} với mod ${m}`);
 };
 
-// Hàm tính định thức (hỗ trợ ma trận kích thước lớn hơn 2x2)
-function calculateDeterminant(matrix) {
-    const size = matrix.length;
+// Hàm tính ma trận nghịch đảo 2x2
+function inverseMatrix2x2(matrix) {
+    const [a, b] = matrix[0];
+    const [c, d] = matrix[1];
 
-    if (size === 2) {
-        return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
-    }
+    const det = (a * d - b * c) % 26;
+    if (gcd(det, 26) !== 1) throw new Error("Ma trận không khả nghịch.");
 
-    let determinant = 0;
-    for (let col = 0; col < size; col++) {
-        const subMatrix = matrix
-            .slice(1)
-            .map(row => row.filter((_, index) => index !== col));
-        const cofactor = matrix[0][col] * calculateDeterminant(subMatrix);
-        determinant += (col % 2 === 0 ? 1 : -1) * cofactor;
-    }
+    const detInverse = modInverse((det + 26) % 26, 26);
 
-    return determinant;
-}
+    // Tính ma trận phụ hợp và nhân với nghịch đảo định thức
+    const adjugate = [
+        [d, -b],
+        [-c, a],
+    ];
 
-// Hàm tính ma trận adjugate
-function calculateAdjugateMatrix(matrix) {
-    const size = matrix.length;
-    const adjugate = Array.from({ length: size }, () =>
-        Array.from({ length: size }, () => 0)
+    return adjugate.map(row =>
+        row.map(value => ((value * detInverse) % 26 + 26) % 26)
     );
-
-    for (let i = 0; i < size; i++) {
-        for (let j = 0; j < size; j++) {
-            const subMatrix = matrix
-                .filter((_, row) => row !== i)
-                .map((row) => row.filter((_, col) => col !== j));
-            const cofactor = calculateDeterminant(subMatrix);
-            adjugate[j][i] = ((i + j) % 2 === 0 ? 1 : -1) * cofactor;
-        }
-    }
-
-    return adjugate;
 }
 
-// Hàm kiểm tra ma trận khả nghịch
-function isMatrixInvertible(matrix) {
-    const determinant = calculateDeterminant(matrix);
-    const detModulo26 = (determinant % 26 + 26) % 26;
-
-    return gcd(detModulo26, 26) === 1;
-}
-
-// Hàm sinh ma trận ngẫu nhiên
-function generateRandomMatrix(size) {
+// Hàm tự sinh ma trận khóa ngẫu nhiên
+function generateRandomKeyMatrix() {
     while (true) {
-        const matrix = Array.from({ length: size }, () =>
-            Array.from({ length: size }, () => Math.floor(Math.random() * 26))
-        );
-
-        const determinant = calculateDeterminant(matrix);
-        if (gcd(determinant, 26) === 1 && determinant !== 0) {
-            return matrix;
-        }
+        const matrix = [
+            [Math.floor(Math.random() * 26), Math.floor(Math.random() * 26)],
+            [Math.floor(Math.random() * 26), Math.floor(Math.random() * 26)],
+        ];
+        if (isInvertible(matrix)) return matrix;
     }
 }
 
 // Hàm mã hóa Hill Cipher
 function hillEncryptAuto(plainText) {
-    const keyMatrix = generateRandomMatrix(2);
-
+    const keyMatrix = generateRandomKeyMatrix(); // Tự động sinh KeyMatrix
     const n = keyMatrix.length;
-    plainText = plainText.toUpperCase().replace(/[^A-Z]/g, ""); // Chỉ giữ các chữ cái
+
+    plainText = plainText.toUpperCase().replace(/[^A-Z]/g, "");
 
     let paddingCount = 0;
     while (plainText.length % n !== 0) {
@@ -84,56 +67,60 @@ function hillEncryptAuto(plainText) {
         paddingCount++;
     }
 
-    const cipherText = [];
+    const blocks = [];
     for (let i = 0; i < plainText.length; i += n) {
-        const block = plainText
-            .slice(i, i + n)
-            .split("")
-            .map((char) => char.charCodeAt(0) - 65);
-
-        const encryptedBlock = keyMatrix.map((row) =>
-            row.reduce((sum, value, col) => sum + value * block[col], 0) % 26
+        blocks.push(
+            plainText
+                .slice(i, i + n)
+                .split("")
+                .map(char => char.charCodeAt(0) - 65) // Chuyển ký tự thành số (A=0, B=1,...)
         );
-
-        cipherText.push(...encryptedBlock.map((num) => String.fromCharCode(num + 65)));
     }
 
-    return {
-        cipherText: cipherText.join(""),
-        keyMatrix: keyMatrix,
-        paddingCount: paddingCount,
-    };
+    const cipherText = blocks
+        .map(block =>
+            keyMatrix.map(row =>
+                row.reduce((sum, value, col) => sum + value * block[col], 0) % 26
+            )
+        )
+        .flat() // Ghép các khối lại thành một mảng duy nhất
+        .map(num => String.fromCharCode(num + 65)) // Chuyển số về ký tự
+        .join(""); // Nối thành chuỗi
+
+    return { cipherText, keyMatrix, paddingCount };
 }
 
 // Hàm giải mã Hill Cipher
 function hillDecrypt(cipherText, keyMatrix, paddingCount = 0) {
-    if (!isMatrixInvertible(keyMatrix)) {
-        throw new Error("The provided key matrix is not invertible.");
-    }
+    const inverseMatrix = inverseMatrix2x2(keyMatrix);
 
     const n = keyMatrix.length;
-
-    const determinant = calculateDeterminant(keyMatrix);
-    const detModulo26 = (determinant % 26 + 26) % 26;
-    const detInverse = modInverse(detModulo26, 26);
-
-    const inverseMatrix = calculateAdjugateMatrix(keyMatrix).map((row) =>
-        row.map((value) => ((value * detInverse) % 26 + 26) % 26)
-    );
-
-    const plainText = [];
+    const blocks = [];
     for (let i = 0; i < cipherText.length; i += n) {
-        const block = cipherText
-            .slice(i, i + n)
-            .split("")
-            .map((char) => char.charCodeAt(0) - 65);
-
-        const decryptedBlock = inverseMatrix.map((row) =>
-            row.reduce((sum, value, col) => sum + value * block[col], 0) % 26
+        blocks.push(
+            cipherText
+                .slice(i, i + n)
+                .split("")
+                .map(char => char.charCodeAt(0) - 65)
         );
-
-        plainText.push(...decryptedBlock.map((num) => String.fromCharCode(num + 65)));
     }
 
-    return plainText.join("").slice(0, -paddingCount);
+    const plainText = blocks
+        .map(block =>
+            inverseMatrix.map(row =>
+                row.reduce((sum, value, col) => sum + value * block[col], 0) % 26
+            )
+        )
+        .flat()
+        .map(num => String.fromCharCode(num + 65))
+        .join("");
+
+    return plainText.slice(0, plainText.length - paddingCount);
 }
+const { cipherText, keyMatrix, paddingCount } = hillEncryptAuto("HELLO");
+console.log("Cipher Text:", cipherText);
+console.log("Key Matrix:", keyMatrix);
+
+// Giải mã
+const plainText = hillDecrypt(cipherText, keyMatrix, paddingCount);
+console.log("Decrypted Text:", plainText);

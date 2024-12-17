@@ -129,3 +129,19 @@ p {
 .cipher-link:hover:nth-child(8) {
     background-color: #6fb837;
 }
+
+.cipher-link:nth-child(9) {
+    background-color: #8B0000;
+}
+.cipher-link:hover:nth-child(9) {
+    background-color: #8B0000;
+}
+
+/* RSA */
+.cipher-link:nth-child(10) {
+    background-color: #ff4081;
+}
+.cipher-link:hover:nth-child(10) {
+    background-color: #ff4081;
+}
+
